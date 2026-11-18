@@ -1,0 +1,33 @@
+# systemd unit for PetXport. Copy to /etc/systemd/system/petxport.service, adjust the
+# paths and user, then: sudo systemctl daemon-reload && sudo systemctl enable --now petxport
+[Unit]
+Description=PetXport volunteer pet transport planner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=petxport
+WorkingDirectory=/opt/petxport
+Environment=NODE_ENV=production
+# Settings are read from /opt/petxport/.env
+ExecStart=/usr/bin/node apps/api/dist/server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

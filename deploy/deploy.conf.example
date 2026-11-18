@@ -1,0 +1,14 @@
+# Copy to deploy/deploy.conf and adjust. No secrets belong in this file.
+
+# SSH login used to deploy; it needs passwordless sudo on the server.
+DEPLOY_HOST=you@your-server.example
+# Where the app lives on the server. Keep it OUTSIDE any web-served folder: it holds .env.
+DEPLOY_DIR=/var/www/vhosts/example.org/petxport
+# The system user the app runs as.
+DEPLOY_USER=example
+# The port in the server's .env (PORT=...), used to check the app came back up.
+DEPLOY_PORT=3000
+# Folder containing the node and npm to use (Node 20 or newer).
+DEPLOY_NODE_BIN=/usr/bin
+# Name of the systemd service.
+DEPLOY_SERVICE=petxport

@@ -1,0 +1,22 @@
+{
+  "name": "petxport",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @petxport/api --filter @petxport/web dev",
+    "build": "pnpm --filter @petxport/web build && pnpm --filter @petxport/api build",
+    "start": "node apps/api/dist/server.js",
+    "migrate": "pnpm --filter @petxport/api migrate",
+    "db:generate": "pnpm --filter @petxport/api db:generate",
+    "vapid": "pnpm --filter @petxport/api vapid",
+    "test": "pnpm --filter @petxport/api test",
+    "typecheck": "pnpm -r typecheck",
+    "seed": "pnpm --filter @petxport/api seed",
+    "addresses:tidy": "pnpm --filter @petxport/api addresses:tidy",
+    "deploy": "bash deploy/deploy.sh"
+  }
+}

@@ -20,7 +20,7 @@ once and shared by many rescues: each organization has its own private space at
 
 ## Requirements
 
-- Node 22 or newer and pnpm
+- Node 20 or newer and pnpm
 - PostgreSQL 14 or newer
 
 ## Getting started (development)
@@ -91,13 +91,29 @@ and street addresses. The public Overpass servers are sometimes busy; when they 
 picker carries on with the tile data alone. `OVERPASS_URL` takes a comma-separated list of
 servers to try, including one you run yourself.
 
+### Addresses
+
+Address lookups return a short line (`1776 Pierre Place, Apex, NC 27502`) without the
+neighbourhood or county, and a driver's home address is also stored in parts (street, city,
+state, postal code, country). Addresses saved before this was introduced can be converted in
+one go with `pnpm addresses:tidy` while the server is running; it looks each one up again,
+about one a second.
+
 ## Notifications
 
 | Channel | Needs |
 |---|---|
 | Email | `SMTP_URL` (for example `smtps://user:pass@smtp.example.org`) and `MAIL_FROM` |
 | Push | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`; run `pnpm vapid` once to generate them |
-| Text message | A Twilio account: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` |
+| Text message | A Brevo account with SMS credits: `BREVO_API_KEY` (an API key, not the SMTP key) and `BREVO_SMS_SENDER` (a name of up to 11 letters and digits, or a number where the country requires one) |
+
+**STOP replies.** Brevo stops texting a number that replies STOP, and can tell PetXport so the
+person's profile is switched off as well. Set `BREVO_WEBHOOK_SECRET` to a long random string, then
+create a webhook in Brevo (Transactional > Settings > Webhook, or `POST /v3/webhooks` with
+`"channel": "sms"`) for the *unsubscribed* event, pointing at
+`https://your-host/api/webhooks/brevo/sms`, with the header `x-webhook-secret` (or bearer token)
+set to the same string. A STOP switches off text notifications for that number in every
+organization, clears the recorded consent, and moves sign-in codes for that number to email.
 
 Each driver chooses their channels on their profile page. Push works in desktop and Android
 browsers after the driver turns it on, and on iPhone/iPad once PetXport has been added to
@@ -105,22 +121,42 @@ the home screen. Push requires the site to be served over HTTPS (localhost is ex
 
 ## Deploying
 
-On the server, in a checkout of this repository:
+The app is one Node process (Node 20 or newer) that serves both the API and the built web
+app, behind a reverse proxy that provides HTTPS. `pnpm deploy` builds it and installs it on
+a server over SSH.
 
-```bash
-pnpm install
-cp .env.example .env      # then edit: database URLs, APP_URL, SMTP, keys
-pnpm migrate
-pnpm build
-NODE_ENV=production pnpm start
-```
+### First deployment
+
+1. **Database.** Create a PostgreSQL database and two logins: an owner (creates the tables)
+   and a restricted one the app runs as. On Plesk: add the database with one user, then add
+   a second user to the same database.
+2. **Deploy settings.** Copy `deploy/deploy.conf.example` to `deploy/deploy.conf` and fill it
+   in. Put the app in a folder that is **not** served by the web server (beside `httpdocs`,
+   not inside it), because it holds `.env`.
+3. **Upload.** Run `pnpm deploy`. The first run uploads everything and stops, because the
+   server has no `.env` yet.
+4. **Settings on the server.** Create `.env` in the app folder from `.env.example`, owned by
+   the app's user with mode 600: `PORT`, `APP_URL` (the real `https://` address), the two
+   database URLs, `PLATFORM_ADMIN_EMAILS`, `SMTP_URL` and `MAIL_FROM`, and VAPID keys
+   (`pnpm vapid` prints a pair).
+5. **Service.** Install `deploy/petxport.service` as a systemd unit, adjusted for the app's
+   folder, user and Node path, and enable it.
+6. **Web server.** Forward the site to the app's port as in `deploy/nginx.conf`. On Plesk,
+   paste the three `location` blocks into the domain's *Additional nginx directives*, and
+   write the catch-all as `location ~ ^/ {` rather than `location / {`: Plesk already
+   defines `location /` for the domain, and nginx refuses a second one.
+7. **Start.** Run `pnpm deploy` again. It applies the database changes, starts the service
+   and checks that it answers.
+
+After that, `pnpm deploy` is the whole upgrade: build, upload, install dependencies, apply
+database changes, restart, health check. It never touches the server's `.env`.
+
+### Notes
 
 - Set `APP_URL` to the public HTTPS address; it is used in email, text and push links and
   makes the login cookie HTTPS-only.
-- The server listens on `HOST:PORT` (127.0.0.1:3000 by default). Put a reverse proxy with
-  TLS in front of it; `deploy/nginx.conf` is a starting point, and `deploy/petxport.service`
-  runs it under systemd.
-- To upgrade: pull, `pnpm install`, `pnpm migrate`, `pnpm build`, restart the service.
+- `pnpm migrate` (run for you by the deploy) keeps its record in a `schema_migrations`
+  table and needs no privileges beyond creating tables in the `public` schema.
 - Back up the PostgreSQL database; it holds everything.
 
 ## Bringing people in
@@ -153,7 +189,7 @@ By default nobody can create an organization without an invitation. Set
   to the host name in `APP_URL`; if you later move the site to a different domain, people
   will need to add them again.
 - **Two-step sign-in**: also on Account security. After the password, a 6-digit code is sent
-  by email, or by text message when Twilio is configured. A code can always be requested by
+  by email, or by text message when Brevo SMS is configured. A code can always be requested by
   email instead, since the mailbox is already how a forgotten password is recovered. A
   password reset does not bypass it. Signing in with a passkey does not ask for a code,
   because the device has already checked the person.

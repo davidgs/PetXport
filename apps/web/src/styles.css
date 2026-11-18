@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-200: #99f6e4;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+/* Numbered handoff pins on the map */
+.pin {
+  @apply flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-xs font-bold text-white shadow-md;
+}
+.pin-start {
+  @apply bg-emerald-600;
+}
+.pin-end {
+  @apply bg-rose-600;
+}
+/* Where the animal is right now: an amber paw, pulsing so it is not mistaken for a stop. */
+.pin-live {
+  @apply flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-amber-400 shadow-md;
+  animation: pin-live-pulse 2s ease-out infinite;
+}
+.pin-live svg {
+  @apply h-5 w-5 fill-slate-900;
+}
+@keyframes pin-live-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(251 191 36 / 0.6); }
+  100% { box-shadow: 0 0 0 14px rgb(251 191 36 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-live { animation: none; }
+}
+.pin-draggable {
+  @apply cursor-grab ring-2 ring-amber-400;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
+
+/* Candidate handoff places in the handoff picker */
+.stop-pin {
+  @apply flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-base leading-none shadow-md;
+}
+.stop-pin:hover {
+  @apply z-10 border-brand-600 ring-2 ring-brand-200;
+}
+.stop-pin-selected {
+  @apply border-rose-600 ring-2 ring-rose-300;
+}
+
+/*
+ * Dark mode.
+ *
+ * Components are written once with the light palette. Under .dark the palette
+ * itself is swapped: the slate scale is inverted, tints become deep, and the
+ * shades used for coloured text become light. A handful of utilities whose
+ * meaning does not survive that swap are corrected below.
+ */
+.dark {
+  color-scheme: dark;
+
+  --color-slate-50: #0b1220;
+  --color-slate-100: #263449;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #64748b;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #b4c0d0;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+
+  /* Tints (backgrounds, rings) */
+  --color-brand-50: #0f2e2b;
+  --color-brand-100: #134e4a;
+  --color-brand-200: #17645d;
+  --color-amber-50: #2b2110;
+  --color-amber-100: #3d2e0f;
+  --color-amber-200: #6b4e12;
+  --color-emerald-100: #0f3326;
+  --color-sky-100: #0f2e45;
+  --color-rose-50: #33141b;
+  --color-rose-100: #451a24;
+  --color-rose-200: #6b2433;
+  --color-rose-300: #8f3145;
+
+  /* Shades used for text */
+  --color-brand-900: #ccfbf1;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-800: #a7f3d0;
+  --color-sky-800: #bae6fd;
+  --color-rose-700: #fda4af;
+  --color-rose-800: #fecdd3;
+}
+
+/* Surfaces: cards, inputs, menus. White stays white where it is text on a coloured button. */
+.dark .bg-white {
+  background-color: #172033;
+}
+/* brand-700 is both a button background (kept) and a link colour (lightened). */
+.dark .text-brand-700 {
+  color: #5eead4;
+}
+.dark .text-rose-600,
+.dark .hover\:text-rose-600:hover {
+  color: #fb7185;
+}
+/* Solid fills that carry their own text colour. */
+.dark .bg-emerald-600,
+.dark .pin-start {
+  background-color: #059669;
+}
+.dark .bg-amber-400 {
+  color: #0b1220;
+}
+.dark .pin {
+  background-color: #334155;
+}
+.dark .pin-start {
+  background-color: #059669;
+}
+.dark .pin-end {
+  background-color: #e11d48;
+}
+/* Scrims and floating labels would otherwise turn pale. */
+.dark .bg-slate-900\/50 {
+  background-color: rgb(0 0 0 / 0.65);
+}
+.dark .bg-slate-900\/85 {
+  background-color: rgb(2 6 23 / 0.9);
+}
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  --tw-shadow-color: rgb(0 0 0 / 0.5);
+}
+/* Map chrome */
+.dark .maplibregl-ctrl-group {
+  background: #172033;
+}
+.dark .maplibregl-ctrl-group button + button {
+  border-top-color: #334155;
+}
+.dark .maplibregl-ctrl button .maplibregl-ctrl-icon {
+  filter: invert(1) hue-rotate(180deg);
+}
+.dark .maplibregl-ctrl-attrib {
+  background: rgb(23 32 51 / 0.85);
+  color: #cbd5e1;
+}
+.dark .maplibregl-ctrl-attrib a {
+  color: #cbd5e1;
+}
+.dark .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+@media print {
+  /* Itineraries always print dark-on-white. */
+  .dark {
+    color-scheme: light;
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+  }
+  .dark .bg-white {
+    background-color: #fff;
+  }
+}
