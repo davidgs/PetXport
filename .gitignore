@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+*.log
+.DS_Store
+coverage
+deploy/deploy.conf
+
+# TLS private keys and certificate requests
+deploy/certs/
+
+# Server-wide mail DNS notes; not part of the app
+deploy/mail-dns-records.md

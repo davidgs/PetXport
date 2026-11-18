@@ -1,0 +1,1 @@
+ALTER TABLE "driver_profiles" DROP COLUMN "emergency_contact";

@@ -1,0 +1,52 @@
+; DNS zone for petxport.org (BIND format)
+;
+; Hosted at Name.com, like rescue-router.com. Name.com supplies the SOA and NS records
+; itself; they are included here so the file is complete if it is imported elsewhere.
+;
+; Lines marked COPY FROM BREVO hold values that Brevo generates for your account
+; (Brevo > Senders, Domains & Dedicated IPs > Domains > petxport.org). Replace them with
+; exactly what Brevo shows before publishing.
+
+$ORIGIN petxport.org.
+$TTL 3600
+
+@       IN  SOA   ns1vwx.name.com. hostmaster.petxport.org. (
+                  2026111701  ; serial (YYYYMMDDnn)
+                  43200       ; refresh
+                  7200        ; retry
+                  1209600     ; expire
+                  3600 )      ; negative-answer TTL
+
+; --- Name servers (Name.com) ---
+@       IN  NS    ns1vwx.name.com.
+@       IN  NS    ns2bls.name.com.
+@       IN  NS    ns3gxy.name.com.
+@       IN  NS    ns4kpx.name.com.
+
+; --- The app: same server as rescue-router.com. IPv4 only, like the server's other domains;
+;     the server also has 2a01:4f9:5a:5340::2 if an AAAA record is wanted later. ---
+@       IN  A     65.109.63.105
+www     IN  A     65.109.63.105
+
+; --- Incoming mail: replies and bounces land on the server's own mail service.
+;     Needs mail switched on for petxport.org in Plesk. ---
+mail    IN  A     65.109.63.105
+@       IN  MX    10 mail.petxport.org.
+
+; --- Who may send mail as petxport.org: Brevo, and the server itself ---
+@       IN  TXT   "v=spf1 mx include:spf.brevo.com ~all"
+
+; --- Brevo domain ownership check.                              COPY FROM BREVO ---
+@       IN  TXT   "brevo-code:REPLACE_WITH_CODE_FROM_BREVO"
+
+; --- Brevo DKIM signing keys.                                   COPY FROM BREVO ---
+brevo1._domainkey  IN  CNAME  b1.petxport-org.dkim.brevo.com.
+brevo2._domainkey  IN  CNAME  b2.petxport-org.dkim.brevo.com.
+
+; --- DMARC: report only, no enforcement yet. Reports go to dmarc@petxport.org, so that
+;     address needs a mailbox or forwarder in Plesk (or change it to one you read). ---
+_dmarc  IN  TXT   "v=DMARC1; p=none; rua=mailto:dmarc@petxport.org"
+
+; --- Optional: only let Let's Encrypt issue certificates for this domain. Uncomment only
+;     if Plesk issues the certificate through Let's Encrypt. ---
+; @     IN  CAA   0 issue "letsencrypt.org"
